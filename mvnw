@@ -20,7 +20,15 @@ if [ ! -r "$JAR" ]; then
     WRAPPER_URL="$MVNW_REPOURL/org/apache/maven/wrapper/maven-wrapper/3.3.2/maven-wrapper-3.3.2.jar"
   fi
   mkdir -p "$WRAPPER_DIR"
-  curl -fsSL -o "$JAR" "$WRAPPER_URL"
+  if ! curl -fsSL -o "$JAR" "$WRAPPER_URL"; then
+    echo "Failed to download Maven wrapper. Falling back to mvn."
+    exec mvn "$@"
+  fi
+fi
+
+if ! "$JAVA_EXE" -jar "$JAR" -v >/dev/null 2>&1; then
+  echo "Maven wrapper jar is invalid. Falling back to mvn."
+  exec mvn "$@"
 fi
 
 exec "$JAVA_EXE" -jar "$JAR" "$@"
