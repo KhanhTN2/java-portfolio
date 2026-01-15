@@ -1,0 +1,68 @@
+name: ci-cd-minikube-demo
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Maven build
+        run: ./mvnw -q -DskipTests=true package
+
+      - name: Start minikube
+        uses: medyagh/setup-minikube@v0.0.16
+        with:
+          driver: docker
+
+      - name: Build Docker images
+        run: |
+          docker build -f order-service/Dockerfile -t java-portfolio/order-service:ci .
+          docker build -f async-notifications/producer-app/Dockerfile -t java-portfolio/producer-app:ci .
+          docker build -f async-notifications/consumer-app/Dockerfile -t java-portfolio/consumer-app:ci .
+
+      - name: Load images into minikube
+        run: |
+          minikube image load java-portfolio/order-service:ci
+          minikube image load java-portfolio/producer-app:ci
+          minikube image load java-portfolio/consumer-app:ci
+
+      - name: Deploy manifests
+        run: |
+          kubectl apply -f k8s/namespace.yaml
+          kubectl apply -f k8s/configmap.yaml
+          kubectl apply -f k8s/secret.yaml
+          kubectl apply -f k8s/postgres.yaml
+          kubectl apply -f k8s/rabbitmq.yaml
+          kubectl apply -f k8s/order-service.yaml
+          kubectl apply -f k8s/producer-app.yaml
+          kubectl apply -f k8s/consumer-app.yaml
+
+      - name: Wait for deployments
+        run: |
+          kubectl -n java-portfolio rollout status deployment/postgres --timeout=180s
+          kubectl -n java-portfolio rollout status deployment/rabbitmq --timeout=180s
+          kubectl -n java-portfolio rollout status deployment/order-service --timeout=180s
+          kubectl -n java-portfolio rollout status deployment/producer-app --timeout=180s
+          kubectl -n java-portfolio rollout status deployment/consumer-app --timeout=180s
+
+      - name: Smoke test
+        run: |
+          kubectl -n java-portfolio port-forward svc/order-service 18080:8080 > /tmp/order-pf.log 2>&1 &
+          kubectl -n java-portfolio port-forward svc/producer-app 18091:8091 > /tmp/producer-pf.log 2>&1 &
+          sleep 5
+          curl -fsS http://127.0.0.1:18080/actuator/health
+          curl -fsS http://127.0.0.1:18091/actuator/health

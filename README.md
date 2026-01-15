@@ -52,6 +52,29 @@ I am Nguyen Khanh (Jeremy) Tran, a Staff-level Java Engineer and Principal Archi
    ./mvnw -q -DskipITs=false verify
    ```
 
+## CI/CD demo (GitHub Actions + Minikube)
+
+This repo includes a GitHub Actions workflow that builds Docker images, boots a Minikube cluster, deploys Kubernetes
+manifests, and runs a smoke test.
+
+Workflow file:
+
+- `.github/workflows/ci-cd.yml`
+
+## Local demo with Docker Compose
+
+```bash
+cp .env.example .env
+docker compose --env-file .env up --build
+```
+
+Services:
+
+- Order API: `http://localhost:8080`
+- Producer API: `http://localhost:8091`
+- Consumer actuator: `http://localhost:8092/actuator/health`
+- RabbitMQ UI: `http://localhost:15672` (guest/guest)
+
 ## Contact
 - Email: nguyenkhanh.tran.95@gmail.com
 - LinkedIn: https://linkedin.com/in/jeremytranmiu

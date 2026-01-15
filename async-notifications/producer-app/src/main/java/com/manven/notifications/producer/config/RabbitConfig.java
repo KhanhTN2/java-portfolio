@@ -1,11 +1,8 @@
 package com.manven.notifications.producer.config;
 
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.DirectExchange;
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.core.QueueBuilder;
+import org.springframework.amqp.core.*;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -36,12 +33,14 @@ public class RabbitConfig {
     }
 
     @Bean
-    Binding notificationsBinding(Queue notificationsQueue, DirectExchange notificationsExchange) {
+    Binding notificationsBinding(@Qualifier("notificationsQueue") Queue notificationsQueue,
+                                 DirectExchange notificationsExchange) {
         return BindingBuilder.bind(notificationsQueue).to(notificationsExchange).with(ROUTING_KEY);
     }
 
     @Bean
-    Binding notificationsDlqBinding(Queue notificationsDlq, DirectExchange notificationsExchange) {
+    Binding notificationsDlqBinding(@Qualifier("notificationsDlq") Queue notificationsDlq,
+                                    DirectExchange notificationsExchange) {
         return BindingBuilder.bind(notificationsDlq).to(notificationsExchange).with(DLQ_ROUTING_KEY);
     }
 
