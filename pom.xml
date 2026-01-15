@@ -26,6 +26,7 @@
         <maven.enforcer.version>3.5.0</maven.enforcer.version>
         <jacoco.version>0.8.12</jacoco.version>
         <checkstyle.version>10.20.2</checkstyle.version>
+        <maven.checkstyle.plugin.version>3.3.1</maven.checkstyle.plugin.version>
         <flyway.version>10.22.0</flyway.version>
         <skipITs>false</skipITs>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -179,12 +180,19 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-checkstyle-plugin</artifactId>
-                    <version>${checkstyle.version}</version>
+                    <version>${maven.checkstyle.plugin.version}</version>
                     <configuration>
                         <configLocation>${maven.multiModuleProjectDirectory}/devex-kit/src/main/resources/checkstyle/checkstyle.xml</configLocation>
                         <consoleOutput>true</consoleOutput>
                         <failsOnError>true</failsOnError>
                     </configuration>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.puppycrawl.tools</groupId>
+                            <artifactId>checkstyle</artifactId>
+                            <version>${checkstyle.version}</version>
+                        </dependency>
+                    </dependencies>
                     <executions>
                         <execution>
                             <id>checkstyle</id>
