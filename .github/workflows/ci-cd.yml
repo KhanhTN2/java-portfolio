@@ -27,6 +27,7 @@ jobs:
         uses: medyagh/setup-minikube@v0.0.16
         with:
           driver: docker
+          cache: false
 
       - name: Build Docker images
         run: |
